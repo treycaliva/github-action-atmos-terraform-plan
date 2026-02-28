@@ -201,6 +201,18 @@ runs:
             stack: ${{ inputs.stack }}
             settingsPath: settings.integrations.github.gitops.artifact-storage.cosmos-endpoint
             outputPath: cosmos-endpoint
+          - component: ${{ inputs.component }}
+            stack: ${{ inputs.stack }}
+            settingsPath: settings.integrations.github.gitops.artifact-storage.google-project-id
+            outputPath: google-project-id
+          - component: ${{ inputs.component }}
+            stack: ${{ inputs.stack }}
+            settingsPath: settings.integrations.github.gitops.artifact-storage.google-firestore-database-name
+            outputPath: google-firestore-database-name
+          - component: ${{ inputs.component }}
+            stack: ${{ inputs.stack }}
+            settingsPath: settings.integrations.github.gitops.artifact-storage.google-firestore-collection-name
+            outputPath: google-firestore-collection-name
 
     - name: Add Terraform and OpenTofu to Aqua
       shell: bash
