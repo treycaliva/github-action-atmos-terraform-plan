@@ -29,10 +29,10 @@ badges:
 # List any related terraform modules that this module may be used with or that this module depends on.
 related: []
 
-description: This Github Action is used to run Terraform plan for a single, Atmos-supported component and save the given planfile to S3 and DynamoDB.
+description: This Github Action is used to run Terraform plan for a single, Atmos-supported component and save the given planfile to S3, Azure Blob Storage, or Google Cloud Storage.
 
 introduction: |-
-  This Github Action is used to run Terraform plan for a single, Atmos-supported component and save the given planfile to S3 and DynamoDB.
+  This Github Action is used to run Terraform plan for a single, Atmos-supported component and save the given planfile to S3, Azure Blob Storage, or Google Cloud Storage.
 
   After running this action, apply Terraform with the companion action, [github-action-atmos-terraform-apply](https://github.com/cloudposse/github-action-atmos-terraform-apply)
 
@@ -66,7 +66,7 @@ usage: |-
 
   The action expects the atmos configuration file `atmos.yaml` to be present in the repository.
 
-  The action supports AWS and Azure to store Terraform plan files. 
+  The action supports AWS, Azure, and GCP to store Terraform plan files.
   You can read more about plan storage in the [cloudposse/github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage?tab=readme-ov-file#aws-default) documentation. 
   Depending on the cloud provider, the following fields should be set in the `atmos.yaml`:
 
@@ -121,6 +121,34 @@ usage: |-
           sort-by: .stack_slug
           group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")
   ```
+
+  #### GCP
+
+  The config should have the following structure:
+
+  ```yaml
+  integrations:
+    github:
+      gitops:
+        opentofu-version: 1.7.3
+        terraform-version: 1.5.2
+        infracost-enabled: false
+        artifact-storage:
+          plan-repository-type: gcs
+          metadata-repository-type: firestore
+          bucket: my-terraform-plans
+          google-project-id: my-gcp-project-123
+          google-firestore-database-name: "(default)"
+          google-firestore-collection-name: terraform-plan-storage
+        # GCP authentication should be configured externally using google-github-actions/auth
+        matrix:
+          sort-by: .stack_slug
+          group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")
+  ```
+
+  > [!NOTE]
+  > GCP authentication is handled externally. Configure `google-github-actions/auth@v2` with
+  > Workload Identity Federation in your workflow before calling this action.
 
   ### Stack level configuration
 
@@ -209,6 +237,48 @@ usage: |-
               atmos-config-path: ./rootfs/usr/local/etc/atmos/
               atmos-version: 1.158.0
   ```
+
+  ### GCP Workflow example
+
+  ```yaml
+    name: "atmos-terraform-plan"
+
+    on:
+      pull_request:
+        types: [opened, synchronize, reopened]
+        branches: [main]
+
+    permissions:
+      id-token: write
+      contents: read
+
+    jobs:
+      plan:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Authenticate to Google Cloud
+            uses: google-github-actions/auth@v2
+            with:
+              workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+              service_account: 'terraform-plan@my-project.iam.gserviceaccount.com'
+
+          - name: Plan Atmos Component
+            uses: cloudposse/github-action-atmos-terraform-plan@v6
+            with:
+              component: "foobar"
+              stack: "plat-ue2-sandbox"
+              atmos-config-path: ./rootfs/usr/local/etc/atmos/
+              atmos-version: 1.158.0
+  ```
+
+  ### Migrating from `v5` to `v6`
+
+  The notable changes in `v6` are:
+  - `v6` adds GCP (Google Cloud Storage + Firestore) plan and metadata storage support
+  - `v6` upgrades `cloudposse/github-action-terraform-plan-storage` from `v1` to `v2`
+  - GCP authentication is handled externally via `google-github-actions/auth@v2`
+
+  No breaking changes for existing AWS or Azure users.
 
   ### Migrating from `v4` to `v5`
 
