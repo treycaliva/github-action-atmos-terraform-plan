@@ -76,6 +76,9 @@ integrations:
         role: __STORAGE_ROLE__
         plan-repository-type: s3
         metadata-repository-type: dynamo
+        google-project-id:
+        google-firestore-database-name:
+        google-firestore-collection-name:
       role:
         plan: __PLAN_ROLE__
         apply: __APPLY_ROLE__
