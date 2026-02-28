@@ -20,6 +20,9 @@ components:
                 cosmos-container-name:
                 cosmos-database-name:
                 cosmos-endpoint:
+                google-project-id:
+                google-firestore-database-name:
+                google-firestore-collection-name:
               role:
                 plan: __PLAN_ROLE__
                 apply: __APPLY_ROLE__
